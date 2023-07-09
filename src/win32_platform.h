@@ -47,3 +47,6 @@ func b8 play_sound(s_sound sound);
 func void init_performance();
 func f64 get_seconds();
 func void set_swap_interval(int interval);
+func int cycle_between_available_resolutions(int current);
+func void center_window();
+func s_v2i set_actual_window_size(int width, int height);

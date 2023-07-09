@@ -42,7 +42,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 	unreferenced(cmdshow);
 	#endif
 
-	create_window((int)c_base_res.x, (int)c_base_res.y);
+	create_window(c_resolutions[c_base_resolution_index].x, c_resolutions[c_base_resolution_index].y);
 	if(!init_audio())
 	{
 		printf("failed to init audio Aware\n");
@@ -56,6 +56,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 	platform_funcs.load_gl_func = (t_load_gl_func)load_gl_func;
 	platform_funcs.set_swap_interval = set_swap_interval;
 	platform_funcs.show_cursor = ShowCursor;
+	platform_funcs.cycle_between_available_resolutions = cycle_between_available_resolutions;
 
 	#ifdef m_debug
 	t_update_game* update_game = null;
@@ -263,6 +264,7 @@ func void create_window(int width, int height)
 		check(RegisterClassEx(&window_class));
 
 		DWORD style = (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX;
+		// DWORD style = WS_POPUP | WS_VISIBLE;
 		RECT rect = zero;
 		rect.right = width;
 		rect.bottom = height;
@@ -281,7 +283,7 @@ func void create_window(int width, int height)
 		);
 		assert(g_window.handle != INVALID_HANDLE_VALUE);
 
-		SetLayeredWindowAttributes(g_window.handle, RGB(0, 0, 0), 0, LWA_COLORKEY);
+		center_window();
 
 		g_window.dc = GetDC(g_window.handle);
 
@@ -457,4 +459,70 @@ func void set_swap_interval(int interval)
 	{
 		wglSwapIntervalEXT(interval);
 	}
+}
+
+func int cycle_between_available_resolutions(int current)
+{
+	HMONITOR monitor = MonitorFromWindow(g_window.handle, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO info = zero;
+	info.cbSize = sizeof(info);
+	BOOL result = GetMonitorInfoA(monitor, &info);
+	if(!result) { return current; }
+	int monitor_width = info.rcMonitor.right - info.rcMonitor.left;
+	int monitor_height = info.rcMonitor.bottom - info.rcMonitor.top;
+	if(monitor_width <= 0 || monitor_height <= 0) { return current; }
+
+	int new_index = current;
+	while(true)
+	{
+		new_index = (new_index + 1) % array_count(c_resolutions);
+		s_v2i res = c_resolutions[new_index];
+		if(res.x > monitor_width || res.y > monitor_height) { continue; }
+
+		if(abs(res.x - monitor_width) < 50 || abs(res.y - monitor_height) < 50)
+		{
+			SetWindowLongA(g_window.handle, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+		}
+		else
+		{
+			SetWindowLongA(g_window.handle, GWL_STYLE, (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
+		}
+
+		set_actual_window_size(res.x, res.y);
+		center_window();
+		break;
+	}
+	return new_index;
+
+}
+
+func s_v2i set_actual_window_size(int width, int height)
+{
+	LONG style = GetWindowLongA(g_window.handle, GWL_STYLE);
+	RECT rect = zero;
+	rect.right = width;
+	rect.bottom = height;
+	AdjustWindowRect(&rect, style, false);
+	int true_width = rect.right - rect.left;
+	int true_height = rect.bottom - rect.top;
+	SetWindowPos(g_window.handle, null, 0, 0, true_width, true_height, SWP_NOMOVE | SWP_NOZORDER);
+	return v2i(true_width, true_height);
+}
+
+func void center_window()
+{
+	HMONITOR monitor = MonitorFromWindow(g_window.handle, MONITOR_DEFAULTTOPRIMARY);
+	MONITORINFO info = zero;
+	info.cbSize = sizeof(info);
+	BOOL result = GetMonitorInfoA(monitor, &info);
+	if(!result) { return; }
+
+	RECT rect;
+	GetWindowRect(g_window.handle, &rect);
+	int window_width = rect.right - rect.left;
+	int window_height = rect.bottom - rect.top;
+
+	int center_x = (info.rcMonitor.left + info.rcMonitor.right) / 2 - window_width / 2;
+	int center_y = (info.rcMonitor.top + info.rcMonitor.bottom) / 2 - window_height / 2;
+	SetWindowPos(g_window.handle, null, center_x, center_y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 }

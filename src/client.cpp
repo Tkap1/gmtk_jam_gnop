@@ -87,6 +87,8 @@ m_update_game(update_game)
 		m_gl_funcs
 		#undef X
 
+		game->current_resolution_index = c_base_resolution_index;
+
 		glDebugMessageCallback(gl_debug_callback, null);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
@@ -134,7 +136,6 @@ m_update_game(update_game)
 		#undef X
 	}
 
-
 	g_window.width = platform_data.window_width;
 	g_window.height = platform_data.window_height;
 	g_window.size = v2ii(g_window.width, g_window.height);
@@ -161,6 +162,15 @@ m_update_game(update_game)
 		}
 	}
 	#endif // m_debug
+
+
+	if(is_key_pressed(c_key_f2))
+	{
+		game->current_resolution_index = g_platform_funcs.cycle_between_available_resolutions(game->current_resolution_index);
+		g_platform_data.any_key_pressed = false;
+	}
+	g_platform_data.mouse.x *= c_base_res.x / (float)c_resolutions[game->current_resolution_index].x;
+	g_platform_data.mouse.y *= c_base_res.y / (float)c_resolutions[game->current_resolution_index].y;
 
 	game->update_timer += g_platform_data.time_passed;
 	game->frame_count += 1;
@@ -190,9 +200,10 @@ m_update_game(update_game)
 
 func void update()
 {
-	float delta = c_delta;
 	game->update_count += 1;
-	g_platform_funcs.show_cursor(false);
+	float delta = c_delta;
+	// g_platform_funcs.show_cursor(false);
+
 	switch(game->state)
 	{
 		case e_state_main_menu:
@@ -424,7 +435,7 @@ func void update()
 			if(level->boss)
 			{
 				s_paddle* boss_paddle = &game->boss_paddle;
-				if(rect_collides_circle(boss_paddle->pos, c_boss_paddle_size, ball->pos, level->ball_radius) || game->score < 98)
+				if(rect_collides_circle(boss_paddle->pos, c_boss_paddle_size, ball->pos, level->ball_radius))
 				{
 					ball->dir.x = -1;
 					ball->hit_time = c_ball_hit_time;
@@ -720,10 +731,14 @@ func void render(float dt)
 	{
 		case e_state_main_menu:
 		{
+			s_v2i res = c_resolutions[game->current_resolution_index];
 			draw_text("GNOP", game->title_pos, 15, v4(hsv_to_rgb(game->title_color), 1), e_font_huge, true);
 			draw_circle(game->ball.pos, 5, 16, v4(1));
-			draw_text("Control the Ball with the Mouse", v2(c_half_res.x, c_base_res.y * 0.7f), 15, v4(1), e_font_big, true);
-			draw_text("Press Any Key to Start", v2(c_half_res.x, c_base_res.y * 0.8f), 15, v4(1), e_font_big, true);
+			draw_text("Control the Ball with the Mouse", v2(c_half_res.x, c_base_res.y * 0.6f), 15, v4(1), e_font_big, true);
+			draw_text("Press Any Key to Start", v2(c_half_res.x, c_base_res.y * 0.7f), 15, v4(1), e_font_big, true);
+			draw_text(
+				format_text("Press F2 to change resolution (%ix%i)", res.x, res.y), v2(c_half_res.x, c_base_res.y * 0.8f), 15, v4(1), e_font_medium, true
+			);
 			draw_text("Made Live at twitch.tv/Tkap1", v2(c_half_res.x, c_base_res.y * 0.9f), 15, make_color(0.5f), e_font_medium, true);
 		} break;
 
@@ -810,7 +825,7 @@ func void render(float dt)
 
 		{
 			int location = glGetUniformLocation(game->programs[e_shader_default], "window_size");
-			glUniform2fv(location, 1, &g_window.size.x);
+			glUniform2fv(location, 1, &c_base_res.x);
 		}
 		{
 			int location = glGetUniformLocation(game->programs[e_shader_default], "time");

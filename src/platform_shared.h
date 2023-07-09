@@ -115,6 +115,7 @@ typedef void* (*t_load_gl_func)(const char*);
 typedef b8 (*t_play_sound)(s_sound);
 typedef void (*t_set_swap_interval)(int);
 typedef int (*t_show_cursor)(BOOL);
+typedef int (*t_cycle_between_available_resolutions)(int);
 
 struct s_game_window
 {
@@ -163,6 +164,7 @@ struct s_platform_funcs
 	t_play_sound play_sound;
 	t_set_swap_interval set_swap_interval;
 	t_show_cursor show_cursor;
+	t_cycle_between_available_resolutions cycle_between_available_resolutions;
 };
 
 

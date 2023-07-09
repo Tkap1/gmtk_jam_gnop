@@ -9,6 +9,12 @@ struct s_v2
 	float y;
 };
 
+struct s_v2i
+{
+	int x;
+	int y;
+};
+
 struct s_v3
 {
 	float x;
@@ -37,6 +43,14 @@ func s_v2 v22i(int x, int y)
 	s_v2 result;
 	result.x = (float)x;
 	result.y = (float)y;
+	return result;
+}
+
+func constexpr s_v2i v2i(int x, int y)
+{
+	s_v2i result;
+	result.x = x;
+	result.y = y;
 	return result;
 }
 

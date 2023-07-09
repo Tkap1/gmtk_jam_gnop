@@ -169,6 +169,7 @@ struct s_game
 	b8 go_to_previous_level;
 	b8 spawn_obstacles;
 	b8 spawn_portals;
+	int current_resolution_index;
 	int current_level;
 	int score;
 	int level_count;
