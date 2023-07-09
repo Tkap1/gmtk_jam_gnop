@@ -56,15 +56,14 @@ compiler_output.txt
 temp_compiler_output.txt
 tags
 *.swp
-client
-server
 *.dll
 build/*.exe
 todo.txt
 stamp_timer.exe
 save_state
+GNOP.zip
 
 # For non compile people
-!./client.exe
-!./client.dll
-!build/client.dll
+!./GNOP.exe
+!./GNOP.dll
+!build/GNOP.dll

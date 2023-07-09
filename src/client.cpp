@@ -426,7 +426,7 @@ func void update()
 					float angle = rng->randf32() * tau;
 					pickup.x = cosf(angle) * radius * sqrtf(rng->randf32()) + c_half_res.x;
 					pickup.y = sinf(angle) * radius * sqrtf(rng->randf32()) + c_half_res.y;
-					pickup.radius = level->ball_radius;
+					pickup.radius = 32;
 					game->score_pickups.add_checked(pickup);
 				}
 
@@ -539,7 +539,7 @@ func void update()
 
 			foreach_raw(pickup_i, pickup, game->score_pickups)
 			{
-				if(circle_collides_circle(ball->pos, level->ball_radius, pickup.pos, level->ball_radius))
+				if(circle_collides_circle(ball->pos, level->ball_radius, pickup.pos, pickup.radius))
 				{
 					game->score += 1;
 					game->score_pickups.remove_and_swap(pickup_i--);
@@ -567,7 +567,7 @@ func void update()
 
 			foreach_raw(pickup_i, pickup, game->death_pickups)
 			{
-				if(circle_collides_circle(ball->pos, level->ball_radius, pickup.pos, level->ball_radius))
+				if(circle_collides_circle(ball->pos, level->ball_radius, pickup.pos, pickup.radius))
 				{
 					game->reset_level = true;
 					g_platform_funcs.play_sound(game->fail_sound);
@@ -1080,8 +1080,10 @@ func u32 load_shader(const char* vertex_path, const char* fragment_path)
 	if(!vertex_src || !vertex_src[0]) { return 0; }
 	char* fragment_src = read_file(fragment_path, frame_arena);
 	if(!fragment_src || !fragment_src[0]) { return 0; }
-	const char* vertex_src_arr[] = {header, read_file("src/shader_shared.h", frame_arena), vertex_src};
-	const char* fragment_src_arr[] = {header, read_file("src/shader_shared.h", frame_arena), fragment_src};
+	// const char* vertex_src_arr[] = {header, read_file("src/shader_shared.h", frame_arena), vertex_src};
+	// const char* fragment_src_arr[] = {header, read_file("src/shader_shared.h", frame_arena), fragment_src};
+	const char* vertex_src_arr[] = {header, vertex_src};
+	const char* fragment_src_arr[] = {header, fragment_src};
 	glShaderSource(vertex, array_count(vertex_src_arr), (const GLchar * const *)vertex_src_arr, null);
 	glShaderSource(fragment, array_count(fragment_src_arr), (const GLchar * const *)fragment_src_arr, null);
 	glCompileShader(vertex);
@@ -1196,7 +1198,7 @@ func void init_levels()
 	{
 		s_level level = make_level();
 		level.ball_speed *= 0.5f;
-		level.speed_boost = 2000;
+		level.speed_boost = 1500;
 		level.score_to_beat = 3;
 		game->levels.add(level);
 	}
@@ -1204,7 +1206,7 @@ func void init_levels()
 	{
 		s_level level = make_level();
 		level.ball_speed *= 0.5f;
-		level.speed_boost = 1200;
+		level.speed_boost = 800;
 		level.score_to_beat = 4;
 		game->levels.add(level);
 	}

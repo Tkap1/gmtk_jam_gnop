@@ -5,6 +5,7 @@
 
 #include "pch_platform.h"
 
+#include "resource.h"
 #include "memory.h"
 #include "config.h"
 #include "platform_shared.h"
@@ -102,16 +103,16 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 		g_platform_data.time_passed = time_passed;
 
 		#ifdef m_debug
-		if(need_to_reload_dll("build/client.dll"))
+		if(need_to_reload_dll("build/GNOP.dll"))
 		{
 			if(dll) { unload_dll(dll); }
 
 			for(int i = 0; i < 100; i++)
 			{
-				if(CopyFile("build/client.dll", "client.dll", false)) { break; }
+				if(CopyFile("build/GNOP.dll", "GNOP.dll", false)) { break; }
 				Sleep(10);
 			}
-			dll = load_dll("client.dll");
+			dll = load_dll("GNOP.dll");
 			update_game = (t_update_game*)GetProcAddress(dll, "update_game");
 			assert(update_game);
 			printf("Reloaded DLL!\n");
@@ -261,6 +262,7 @@ func void create_window(int width, int height)
 		window_class.lpszClassName = class_name;
 		window_class.hInstance = instance;
 		window_class.hCursor = LoadCursor(null, IDC_ARROW);
+		window_class.hIcon = LoadIcon(instance, MAKEINTRESOURCE(MY_ICON));
 		check(RegisterClassEx(&window_class));
 
 		DWORD style = (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX;

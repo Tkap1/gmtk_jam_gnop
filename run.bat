@@ -1,3 +1,3 @@
 @echo off
 
-start "client" client.exe
+start "GNOP" GNOP.exe
